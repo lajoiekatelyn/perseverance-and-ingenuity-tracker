@@ -158,30 +158,5 @@ def shortest_dist_between_agents(sol:str):
     else:
         return f'Either Perseverance or Ingenuity was not deployed on {sol}.\n', 400
 
-"""@app.route('/rover/sols/<string:sol>/distance', methods=['GET'])
-def get_dist_rover(sol:str) -> float:
-    if not rd_rover.get(sol):
-        return f'Perseverance was not deployed on {sol}.\n'
-    else:
-        data = json.loads(rd_rover.get(sol))
-        coords = data['geometry']['coordinates']
-        total_dist = 0
-        for i in range(len(coords)-1):
-            total_dist += calc_gcd(coords[i][1], coords[i][0], coords[i+1][1], coords[i+1][0], 3389.5)
-        return {'distance_traveled_km': total_dist}
-
-@app.route('/helicopter/sols/<string:sol>/distance', methods=['GET'])
-def get_dist_heli(sol:str) -> float:
-    if not rd_heli.get(sol):
-        return f'Ingenuity was not deployed on {sol}.\n'
-    else:
-        data = json.loads(rd_heli.get(sol))
-        coords = data['geometry']['coordinates']
-        total_dist = 0
-        for i in range(len(coords)-1):
-            total_dist += calc_gcd(coords[i][1], coords[i][0], coords[i+1][1], coords[i+1][0], 3389.5)
-        return {'distance_traveled_km': total_dist}
-"""
-
 if __name__=='__main__':
     app.run(debug=True, host='0.0.0.0')
