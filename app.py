@@ -1,6 +1,7 @@
 import json
 from flask import Flask, request
 import redis
+import math
 
 app = Flask(__name__)
 
@@ -21,6 +22,24 @@ def get_redis_client(db_num:int, decode:bool):
 rd_rover = get_redis_client(0, True)
 rd_heli = get_redis_client(1, True)
 rd_img = get_redis_client(2, False)
+
+def calc_gcd(latitude_1: float, longitude_1: float, latitude_2: float, longitude_2: float, radius:float) -> float:
+    """
+    This function was written by Joe Wallen. Modifies to remove global variables and make it applicable to a planent
+    of any radius.
+    Arguments:
+        latitude_1 (float): latitude at which the robot starts its journey.
+        latitude_2 (float): latitude at which the robot ends its journey.
+        longitude_1 (float): longitude at which the robot starts its journey.
+        longitude_2 (float): longitude at which the robot ends its journey.
+        radius (float): the radius of the planet the robot is traversing.
+    Returns:
+        distance (float): the distance that a robot has to travel to get between two (lat, long) points.
+    """
+
+    lat1, lon1, lat2, lon2 = map( math.radians, [latitude_1, longitude_1, latitude_2, longitude_2] )
+    d_sigma = math.acos( math.sin(lat1) * math.sin(lat2) + math.cos(lat1) * math.cos(lat2) * math.cos(abs(lon1-lon2)))
+    return ( radius * d_sigma )
 
 @app.route('/data', methods=['GET', 'POST', 'DELETE'])
 def get_route():
@@ -121,6 +140,48 @@ def get_heli_sol(sol:str):
 
     ret = json.loads(rd_heli.get(sol))
     return ret
+
+@app.route('/rover/sols/<string:sol>/helicopter', methods=['GET'])
+def shortest_dist_between_agents(sol:str):
+    if rd_heli.get(sol) and rd_rover.get(sol):
+        shortest_dist = float('inf')
+        rover_data = json.loads(rd_rover.get(sol))
+        rover_coords = rover_data['geometry']['coordinates']
+        heli_data = json.loads(rd_heli.get(sol))
+        heli_coords = heli_data['geometry']['coordinates']
+        for i in range(len(rover_coords)):
+            for j in range(len(heli_coords)):
+                dist = calc_gcd(rover_coords[i][1], rover_coords[i][0], heli_coords[j][1], heli_coords[j][0], 3389.5) * 1000
+                if (dist < shortest_dist):
+                    shortest_dist = dist
+        return {'shortest_dist': shortest_dist}
+    else:
+        return f'Either Perseverance or Ingenuity was not deployed on {sol}.\n', 400
+
+"""@app.route('/rover/sols/<string:sol>/distance', methods=['GET'])
+def get_dist_rover(sol:str) -> float:
+    if not rd_rover.get(sol):
+        return f'Perseverance was not deployed on {sol}.\n'
+    else:
+        data = json.loads(rd_rover.get(sol))
+        coords = data['geometry']['coordinates']
+        total_dist = 0
+        for i in range(len(coords)-1):
+            total_dist += calc_gcd(coords[i][1], coords[i][0], coords[i+1][1], coords[i+1][0], 3389.5)
+        return {'distance_traveled_km': total_dist}
+
+@app.route('/helicopter/sols/<string:sol>/distance', methods=['GET'])
+def get_dist_heli(sol:str) -> float:
+    if not rd_heli.get(sol):
+        return f'Ingenuity was not deployed on {sol}.\n'
+    else:
+        data = json.loads(rd_heli.get(sol))
+        coords = data['geometry']['coordinates']
+        total_dist = 0
+        for i in range(len(coords)-1):
+            total_dist += calc_gcd(coords[i][1], coords[i][0], coords[i+1][1], coords[i+1][0], 3389.5)
+        return {'distance_traveled_km': total_dist}
+"""
 
 if __name__=='__main__':
     app.run(debug=True, host='0.0.0.0')
