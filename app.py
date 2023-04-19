@@ -158,5 +158,23 @@ def shortest_dist_between_agents(sol:str):
     else:
         return f'Either Perseverance or Ingenuity was not deployed on {sol}.\n', 400
 
+
+@app.route('/helicopter/flights', methods=['GET'])
+def get_heli_flights():
+ """
+    This function returns list of all flights. 
+    Arguments
+        None
+    Returns
+        flights (list): list of all flights in dataset 
+    """    
+    flights = []
+    for sol in rd_heli.keys():
+        sol_dict = json.loads(rd_heli.get(sol))
+        flight_num = sol_dict['properties']['Flight']
+        flights.append(f"Flight:{flight_num}")
+    return flights
+    
+    
 if __name__=='__main__':
     app.run(debug=True, host='0.0.0.0')
