@@ -143,6 +143,13 @@ def get_heli_sol(sol:str):
 
 @app.route('/rover/sols/<string:sol>/helicopter', methods=['GET'])
 def shortest_dist_between_agents(sol:str):
+    """
+    This function returns list of all flights.
+    Arguments
+        sol (str): sol of interest
+    Returns
+        shortest_dist (dictionary): shortest distance between the two robots on a given sol
+    """
     if rd_heli.get(sol) and rd_rover.get(sol):
         shortest_dist = float('inf')
         rover_data = json.loads(rd_rover.get(sol))
@@ -161,7 +168,7 @@ def shortest_dist_between_agents(sol:str):
 
 @app.route('/helicopter/flights', methods=['GET'])
 def get_heli_flights():
- """
+    """
     This function returns list of all flights. 
     Arguments
         None
@@ -174,7 +181,25 @@ def get_heli_flights():
         flight_num = sol_dict['properties']['Flight']
         flights.append(f"Flight:{flight_num}")
     return flights
-    
+
+@app.route('/helicopter/flights/<string:flight>', methods=['GET'])
+def get_heli_flight(flight:str):
+    """
+    This function returns information regarding specified flight.
+    Arguments
+        flight (str): flight of interest
+    Returns
+        sol_dict (dictionary): data related to the flight specified
+    """
+    flight = flight[7:]
+    for sol in rd_heli.keys():
+        sol_dict = json.loads(rd_heli.get(sol))
+        flight_num = sol_dict['properties']['Flight']
+        if str(flight) == str(flight_num):
+            return sol_dict
+
+    return f"The data for flight:{flight} is not within the dataset.\n",400
+
     
 if __name__=='__main__':
     app.run(debug=True, host='0.0.0.0')
