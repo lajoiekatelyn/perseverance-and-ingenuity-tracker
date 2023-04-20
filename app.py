@@ -104,16 +104,20 @@ def get_rover_sol(sol:str):
     ret = json.loads(rd_rover.get(sol))
     return ret
 
-@app.route('/deployed/<string:sol>', methods=['GET'])
-def get_deployed(sol:str):
-    if rd_rover.get(sol) and rd_heli.get(sol):
-        return f'Perseverance and Ingenuity were both deployed on {sol}.\n'
-    elif rd_rover.get(sol):
-        return f'Perseverance was deployed on {sol}, but Ingenuity was not.\n'
-    elif rd_heli.get(sol):
-        return f'Ingenuity was deployed on {sol}, but Perseverance was not.\n'
-    else:
-        return f'Neither Perseverance nor Ingeunity were deployed on {sol}.\n.' 
+@app.route('/both_deployed', methods=['GET'])
+def get_deployed() -> list:
+    """
+    This function returns all the sols during which both the rover and the helicopter were deployed.
+    Arguments
+        None
+    Returns sols_both_deployed (list): list of sols both rover and helicopter are deployed.
+    """
+    both = []
+    keys = rd_heli.keys()
+    for sol in keys:
+        if rd_rover.get(sol):
+            both.append(sol)
+    return both 
 
 @app.route('/helicopter/sols', methods=['GET'])
 def get_heli_sols():
