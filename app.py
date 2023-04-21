@@ -2,6 +2,7 @@ import json
 from flask import Flask, request
 import redis
 import math
+import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 
@@ -58,22 +59,52 @@ def get_route():
         for item in rd_heli.keys():
             output_list.append(json.loads(rd_heli.get(item)))
         return output_list
+    
     elif request.method == 'POST':
         with open('rover_drive_path.json', 'r') as f:
             rover_data = json.load(f)
         with open('helicopter_flight_path.json', 'r') as f:
             helicopter_data = json.load(f)
+            
         for item in rover_data['features']:
-            key = f'sol:{item["properties"]["sol"]}'
-            item = json.dumps(item)            
-            rd_rover.set(key, item)
+            if int(item['properties']['sol']) < 10:
+                key = f'sol:0000{item["properties"]["sol"]}'
+                item = json.dumps(item)            
+                rd_rover.set(key, item)
+            elif int(item["properties"]["sol"])>=10 and int(item["properties"]["sol"])<100:
+                key = f'sol:000{item["properties"]["sol"]}'
+                item = json.dumps(item)
+                rd_rover.set(key, item)
+            elif int(item["properties"]["sol"])>=100 and int(item["properties"]["sol"])<1000:
+                key = f'sol:00{item["properties"]["sol"]}'
+                item = json.dumps(item)
+                rd_rover.set(key, item)
+            else:
+                key = f'sol:{item["properties"]["sol"]}'
+                item = json.dumps(item)
+                rd_rover.set(key, item)
+            
         for item in helicopter_data['features']:
-            key = f'sol:{item["properties"]["Sol"]}'
-            item = json.dumps(item)
-            rd_heli.set(key, item)
+            if int(item["properties"]["Sol"])<10:
+                key = f'sol:0000{item["properties"]["Sol"]}'
+                item = json.dumps(item)
+                rd_heli.set(key, item)
+            elif int(item["properties"]["Sol"])>=10 and int(item["properties"]["Sol"])<100:
+                key = f'sol:000{item["properties"]["Sol"]}'
+                item = json.dumps(item)
+                rd_heli.set(key, item)
+            elif int(item["properties"]["Sol"])>=100 and int(item["properties"]["Sol"])<1000:
+                key = f'sol:00{item["properties"]["Sol"]}'
+                item = json.dumps(item)
+                rd_heli.set(key, item)
+            else:
+                key = f'sol:{item["properties"]["Sol"]}'
+                item = json.dumps(item)
+                rd_heli.set(key, item)
         return f'Data loaded into db.\n'
     elif request.method == 'DELETE':
-        rd.flushdb()
+        rd_rover.flushdb()
+        rd_heli.flushdb()
         return f'Data deleted.\n'
     else:
         return 'The method you requested does not apply.\n', 400
@@ -87,7 +118,11 @@ def get_rover_sols():
     Returns
         sols_operational (list): integer numbers
     """
-    return rd_rover.keys()
+    sols = []
+    for sol in rd_heli.keys():
+        sols.append(sol)
+    sols.sort()
+    return sols
 
 @app.route('/rover/sols/<string:sol>', methods=['GET'])
 def get_rover_sol(sol:str):
@@ -128,7 +163,11 @@ def get_heli_sols():
     Returns
         sols_operational (list): integer numbers
     """
-    return rd_heli.keys()
+    sols = []
+    for sol in rd_heli.keys():
+        sols.append(sol)
+    sols.sort()
+    return sols
 
 @app.route('/helicopter/sols/<string:sol>', methods=['GET'])
 def get_heli_sol(sol:str):
@@ -204,6 +243,56 @@ def get_heli_flight(flight:str):
 
     return f"The data for flight:{flight} is not within the dataset.\n",400
 
-    
+@app.route('/map', methods=['GET', 'POST', 'DELETE'])
+def create_map():
+    """
+    """
+    heli_x_pos =[]
+    heli_y_pos = []
+    rover_x_pos = []
+    rover_y_pos = []
+    heli_sols = []
+    rover_sols = []
+    #converts from rd to sorted list
+    for sol in rd_heli.keys():
+        heli_sols.append(sol)
+    heli_sols.sort()
+    for sol in rd_rover.keys():
+        rover_sols.append(sol)
+    rover_sols.sort()
+
+    if request.method == 'POST':
+        for sol in heli_sols:
+            sol_dict = json.loads(rd_heli.get(sol))
+            for point in sol_dict['geometry']['coordinates']:
+                heli_x_pos.append(point[0])
+                heli_y_pos.append(point[1])
+        for sol in rover_sols:
+            #there seems to be an some corrdinates that are given as list
+            sol_dict = json.loads(rd_rover.get(sol))
+            if sol_dict['geometry']['type'] == 'MultiLineString':
+                for lists_of_coords in sol_dict['geometry']['coordinates']:
+                    for point in lists_of_coords:
+                        rover_x_pos.append(point[0])
+                        rover_y_pos.append(point[1])
+            elif sol_dict['geometry']['type'] == 'LineString':
+                for point in sol_dict['geometry']['coordinates']:
+                    rover_x_pos.append(point[0])
+                    rover_y_pos.append(point[1])
+        
+        plt.plot(heli_x_pos,heli_y_pos)
+        plt.plot(rover_x_pos,rover_y_pos)
+        plt.savefig('./map.png')
+        return rover_x_pos
+    #returns to user
+    elif request.method == 'GET':
+        return 'a'
+    elif request.method == 'DELETE':
+        rd_image.flushdb()
+        return 'Plot has been deleted from database'
+    else:
+        return 'a'
+
+
 if __name__=='__main__':
     app.run(debug=True, host='0.0.0.0')
