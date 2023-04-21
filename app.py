@@ -68,15 +68,15 @@ def get_route():
             
         for item in rover_data['features']:
             if int(item['properties']['sol']) < 10:
-                key = f'sol:0000{item["properties"]["sol"]}'
+                key = f'sol:000{item["properties"]["sol"]}'
                 item = json.dumps(item)            
                 rd_rover.set(key, item)
             elif int(item["properties"]["sol"])>=10 and int(item["properties"]["sol"])<100:
-                key = f'sol:000{item["properties"]["sol"]}'
+                key = f'sol:00{item["properties"]["sol"]}'
                 item = json.dumps(item)
                 rd_rover.set(key, item)
             elif int(item["properties"]["sol"])>=100 and int(item["properties"]["sol"])<1000:
-                key = f'sol:00{item["properties"]["sol"]}'
+                key = f'sol:0{item["properties"]["sol"]}'
                 item = json.dumps(item)
                 rd_rover.set(key, item)
             else:
@@ -86,15 +86,15 @@ def get_route():
             
         for item in helicopter_data['features']:
             if int(item["properties"]["Sol"])<10:
-                key = f'sol:0000{item["properties"]["Sol"]}'
-                item = json.dumps(item)
-                rd_heli.set(key, item)
-            elif int(item["properties"]["Sol"])>=10 and int(item["properties"]["Sol"])<100:
                 key = f'sol:000{item["properties"]["Sol"]}'
                 item = json.dumps(item)
                 rd_heli.set(key, item)
-            elif int(item["properties"]["Sol"])>=100 and int(item["properties"]["Sol"])<1000:
+            elif int(item["properties"]["Sol"])>=10 and int(item["properties"]["Sol"])<100:
                 key = f'sol:00{item["properties"]["Sol"]}'
+                item = json.dumps(item)
+                rd_heli.set(key, item)
+            elif int(item["properties"]["Sol"])>=100 and int(item["properties"]["Sol"])<1000:
+                key = f'sol:0{item["properties"]["Sol"]}'
                 item = json.dumps(item)
                 rd_heli.set(key, item)
             else:
@@ -119,7 +119,7 @@ def get_rover_sols():
         sols_operational (list): integer numbers
     """
     sols = []
-    for sol in rd_heli.keys():
+    for sol in rd_rover.keys():
         sols.append(sol)
     sols.sort()
     return sols
@@ -251,8 +251,16 @@ def create_map():
     heli_y_pos = []
     rover_x_pos = []
     rover_y_pos = []
+    
+    heli_x_pos_end =[]
+    heli_y_pos_end = []
+    rover_x_pos_end = []
+    rover_y_pos_end = []
+    
     heli_sols = []
     rover_sols = []
+    sol_bounds = {'lower_bound':200,'upper_bound':500}
+    
     #converts from rd to sorted list
     for sol in rd_heli.keys():
         heli_sols.append(sol)
@@ -262,26 +270,61 @@ def create_map():
     rover_sols.sort()
 
     if request.method == 'POST':
+        counter = 0;
         for sol in heli_sols:
             sol_dict = json.loads(rd_heli.get(sol))
+            if sol_dict["properties"]["Sol"] < sol_bounds['lower_bound']:
+                continue;
+            elif sol_dict["properties"]["Sol"] > sol_bounds['upper_bound']:
+                continue;
             for point in sol_dict['geometry']['coordinates']:
                 heli_x_pos.append(point[0])
                 heli_y_pos.append(point[1])
+                counter +=1
+                if counter == len(sol_dict['geometry']['coordinates']):
+                    heli_x_pos_end.append(point[0])
+                    heli_y_pos_end.append(point[1])
+                    counter = 0;
         for sol in rover_sols:
             #there seems to be an some corrdinates that are given as list
             sol_dict = json.loads(rd_rover.get(sol))
+            if sol_dict["properties"]["sol"] < sol_bounds['lower_bound']:
+                continue;
+            elif sol_dict["properties"]["sol"] > sol_bounds['upper_bound']:
+                continue;
             if sol_dict['geometry']['type'] == 'MultiLineString':
+                counter2 = 0
                 for lists_of_coords in sol_dict['geometry']['coordinates']:
+                    counter +=1
                     for point in lists_of_coords:
                         rover_x_pos.append(point[0])
                         rover_y_pos.append(point[1])
+                        counter2+=1
+                        if counter == len(sol_dict['geometry']['coordinates']) and counter2 == len(lists_of_coords):
+                            rover_x_pos_end.append(point[0])
+                            rover_y_pos_end.append(point[1])
+                            counter=0
+                            counter2=0
+                        
             elif sol_dict['geometry']['type'] == 'LineString':
                 for point in sol_dict['geometry']['coordinates']:
                     rover_x_pos.append(point[0])
                     rover_y_pos.append(point[1])
+                    counter+=1
+                    if counter == len(sol_dict['geometry']['coordinates']):
+                        rover_x_pos_end.append(point[0])
+                        rover_y_pos_end.append(point[1])
+                        counter=0
         
-        plt.plot(heli_x_pos,heli_y_pos)
-        plt.plot(rover_x_pos,rover_y_pos)
+        plt.plot(heli_x_pos,heli_y_pos,label='Ingenuity')
+        plt.plot(rover_x_pos,rover_y_pos,label='Perseverance')
+        plt.scatter(heli_x_pos_end,heli_y_pos_end)
+        plt.scatter(rover_x_pos_end,rover_y_pos_end)
+        plt.title('Map of Ingenuity and Perseverance Path')
+        plt.grid(True, color='gray', linestyle='--')
+        plt.xlabel("Latitude ($^{\circ}$)")
+        plt.ylabel("Longitude ($^{\circ}$)")
+        plt.legend()
         plt.savefig('./map.png')
         return rover_x_pos
     #returns to user
