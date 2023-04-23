@@ -1,8 +1,9 @@
 import json
-from flask import Flask, request
+from flask import Flask, request, send_file
 import redis
 import math
 import matplotlib.pyplot as plt
+import os
 
 app = Flask(__name__)
 
@@ -246,30 +247,40 @@ def get_heli_flight(flight:str):
 @app.route('/map', methods=['GET', 'POST', 'DELETE'])
 def create_map():
     """
+    This function either gets, post, or deletes map of rover and helicopter's paths
+    Arguments
+        lower_bound (str): sol at wich the plot begins 
+        upper_bound (str): sol at which the plot ends
+    Returns
     """
-    heli_x_pos =[]
-    heli_y_pos = []
-    rover_x_pos = []
-    rover_y_pos = []
     
-    heli_x_pos_end =[]
-    heli_y_pos_end = []
-    rover_x_pos_end = []
-    rover_y_pos_end = []
-    
-    heli_sols = []
-    rover_sols = []
-    sol_bounds = {'lower_bound':200,'upper_bound':500}
-    
-    #converts from rd to sorted list
-    for sol in rd_heli.keys():
-        heli_sols.append(sol)
-    heli_sols.sort()
-    for sol in rd_rover.keys():
-        rover_sols.append(sol)
-    rover_sols.sort()
-
     if request.method == 'POST':
+        if len(rd_heli.keys()) == 0:
+            return 'There is no data in the database; image cannot be created.\n', 400
+        
+        heli_x_pos =[]
+        heli_y_pos = []
+        rover_x_pos = []
+        rover_y_pos = []
+        
+        heli_x_pos_end =[]
+        heli_y_pos_end = []
+        rover_x_pos_end = []
+        rover_y_pos_end = []
+        
+        heli_sols = []
+        rover_sols = []
+        sol_bounds = {'lower_bound':200,'upper_bound':500}
+
+        
+        #converts from rd to sorted list
+        for sol in rd_heli.keys():
+            heli_sols.append(sol)
+            heli_sols.sort()
+            for sol in rd_rover.keys():
+                rover_sols.append(sol)
+                rover_sols.sort()
+
         counter = 0;
         for sol in heli_sols:
             sol_dict = json.loads(rd_heli.get(sol))
@@ -326,15 +337,25 @@ def create_map():
         plt.ylabel("Longitude ($^{\circ}$)")
         plt.legend()
         plt.savefig('./map.png')
-        return rover_x_pos
+
+        filebytes = open('./map.png', 'rb').read()
+        rd_img.set('map', filebytes)
+        return "Map has been written to image database.\n"
     #returns to user
     elif request.method == 'GET':
-        return 'a'
+        if rd_img.exists('map'):
+            path = './map.png'
+            with open(path, 'wb') as f:
+                f.write(rd_img.get('map'))
+                return send_file(path, mimetype='map/png', as_attachment=True)
+        else:
+            return 'There are no images in the database.\n', 400
+        return 'Plot can be found on imgur.\n'
     elif request.method == 'DELETE':
-        rd_image.flushdb()
-        return 'Plot has been deleted from database'
+        rd_img.flushdb()
+        return 'Plot has been deleted from database.\n'
     else:
-        return 'a'
+        return 'The method you requested is not an option.\n'
 
 
 if __name__=='__main__':
