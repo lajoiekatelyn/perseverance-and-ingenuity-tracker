@@ -104,7 +104,7 @@ where you can use any of the commands below, under Usage, replacing `localhost` 
 ## Deploying and testing the application
 
 ## Using the the application
-Here are a table of the routes:
+Here is a table of the routes:
 
 | Route | Method | Description |
 | --- | --- | --- |
