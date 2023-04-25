@@ -25,6 +25,10 @@ pip3 install redis
 ```
 otherwise, Docker will take care of the Redis image for this application.
 
+## Imgur API
+
+The Imgur API is a RESTful API that is based on HTTP requests and it returns JSON responses. To allow the user to see the plots they produce the Flask application makes a requests to the url https://api.imgur.com/3/upload. The Flask app then return to the user the response from the Imgur API which includes a link to the image among other information.  
+
 ## Docker
 
 To ensure functionality across macnines, this app is containerized according to the included DockerFile and launched according to the included docker-copose.yml file. To run the app as an end user, please refer to the Pull the Docker Image and docker-compose sections below. To develop using the app in this repo, please refer to the DockerFile section below.
@@ -121,6 +125,183 @@ Here is a table of the routes:
 | `/heli/sols/<string:sol>` | GET | Return dictionary with all the information in the heli dataset associated with that sol |
 | `/rover/sols/<string:sol>/helicopter` | GET | Return dictionary containing the shortest distance between the robots |
 | `/both_deployed` | GET | Return list where both Perseverance and Ingenuity were deployed |
-| `/map` | POST | Create map with path data based on inputted sols |
+| `/map?lower= &upper= ` | POST | Create map with path data based on lower and iupper bounds |
 | | GET | Return a dictionary containing link to the image |
 | | DELETE | Delete map data in redis |
+
+### /data [POST]
+```
+$ curl -X POST localhost:5000/data
+Data loaded into db.
+```
+### /data [GET]
+```
+$ curl localhost:5000/data
+  {
+    "geometry": {
+      "coordinates": [
+        [
+          77.451388,
+          18.442665
+        ],
+        [
+          77.449155,
+          18.441573
+        ],
+        [
+          77.449181,
+          18.441336
+        ],
+        [
+          77.449943,
+          18.44166
+        ]
+      ],
+      "type": "LineString"
+    },
+    "properties": {
+      "Flight": 6,
+      "Length_m": 202.363,
+      "SCLK_END": 675019237.6,
+      "SCLK_START": 675019097.7,
+      "Sol": 91
+    },
+    "type": "Feature"
+  }
+]
+```
+### /data [DELETE]
+```
+$ curl -X DELETE localhost:5000/data
+Data deleted.
+```
+### /rover/sols
+```
+$ curl localhost:5000/rover/sols
+[
+  "sol:0014",
+  "sol:0015",
+  "sol:0016",
+  "sol:0020",
+  "sol:0023",
+  "sol:0029",
+  "sol:0031",
+  "sol:0032",
+  "sol:0033",
+  "sol:0034",
+  "sol:0043",
+  "sol:0044",
+```
+### /rover/sols/<string:sol>
+```
+$ curl localhost:5000/rover/sols/sol:0014
+{
+  "geometry": {
+    "coordinates": [
+      [
+        77.450886,
+        18.444627,
+        -7.8e-05
+      ],
+      [
+        77.450897,
+        18.444617,
+        -7.8e-05
+      ],
+      [
+        77.45091,
+        18.444606,
+        -7.8e-05
+      ],
+      [
+```
+### /helicopter/flights
+```
+$ curl localhost:5000/helicopter/flights
+[
+  "Flight:41",
+  "Flight:13",
+  "Flight:12",
+  "Flight:48",
+  "Flight:16",
+  "Flight:30",
+  "Flight:47",
+  "Flight:37",
+```
+### /helicopter/flights/<string:flight>
+```
+$ curl localhost:5000/helicopter/flights/Flight:41
+{
+  "geometry": {
+    "coordinates": [
+      [
+        77.407122,
+        18.458697
+      ],
+      [
+        77.405825,
+        18.459777
+      ],
+      [
+        77.407091,
+        18.459016
+      ]
+    ],
+    "type": "LineString"
+  },
+  "properties": {
+    "Flight": 41,
+    "Length_m": 181.349,
+    "SCLK_END": 728119180,
+    "SCLK_START": 728119071,
+    "Sol": 689
+  },
+  "type": "Feature"
+}
+```
+### /heli/sols
+```
+$ curl localhost:5000/helicopter/sols
+[
+  "sol:0058",
+  "sol:0061",
+  "sol:0064",
+  "sol:0069",
+  "sol:0076",
+  "sol:0091",
+  "sol:0107",
+  "sol:0120",
+  "sol:0133",
+```
+### `/heli/sols/<string:sol>
+```
+$ curl localhost:5000/helicopter/sols/sol:0714
+{
+  "geometry": {
+    "coordinates": [
+      [
+        77.398408,
+        18.472231
+      ],
+      [
+        77.398368,
+        18.474394
+      ],
+      [
+        77.392373,
+        18.477141
+      ]
+    ],
+    "type": "LineString"
+  },
+  "properties": {
+    "Flight": 45,
+    "Length_m": 502.6,
+    "SCLK_END": 730342605.9,
+    "SCLK_START": 730342461.3,
+    "Sol": 714
+  },
+  "type": "Feature"
+}
+```
+
