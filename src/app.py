@@ -330,9 +330,9 @@ def create_map():
         for sol in rd_heli.keys():
             heli_sols.append(sol)
             heli_sols.sort()
-            for sol in rd_rover.keys():
-                rover_sols.append(sol)
-                rover_sols.sort()
+        for sol in rd_rover.keys():
+            rover_sols.append(sol)
+            rover_sols.sort()
 
         counter = 0;
         for sol in heli_sols:
