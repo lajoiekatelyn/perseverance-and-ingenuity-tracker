@@ -2,6 +2,7 @@ import json
 from flask import Flask, request
 import redis
 import math
+import os
 
 app = Flask(__name__)
 
@@ -17,7 +18,12 @@ def get_redis_client(db_num:int, decode:bool):
     Returns
         redis_database (redis.client.Redis): Redis client
     """
-    return redis.Redis(host='redis-db', port=6379, db=db_num, decode_responses=decode)
+
+    redis_ip = os.environ.get('REDIS_IP')
+        if not redis_ip:
+            raise Exception()
+
+    return redis.Redis(host=redis_ip, port=6379, db=db_num, decode_responses=decode)
 
 rd_rover = get_redis_client(0, True)
 rd_heli = get_redis_client(1, True)

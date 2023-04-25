@@ -15,6 +15,8 @@ services:
             dockerfile: ./Dockerfile
         depends_on:
             - redis-db
+        environment:
+            - REDIS_IP=final-redis-service
         image: lajoiekatelyn/perseverance_and_ingenuity_tracker:local
         ports:
             - 5000:5000
