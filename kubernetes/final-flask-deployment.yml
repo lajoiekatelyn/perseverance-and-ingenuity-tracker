@@ -18,7 +18,7 @@ spec:
       containers:
         - name: final-flask
           imagePullPolicy: Always
-          image: lajoiekatelyn/perseverance-and-ingenuity-tracker:local
+          image: lajoiekatelyn/perseverance-and-ingenuity-tracker:kube
           env:
           - name: FLASK_APP
             value: "app.py"
