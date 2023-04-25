@@ -109,6 +109,34 @@ def get_route():
     else:
         return 'The method you requested does not apply.\n', 400
 
+@app.route('/rover')
+def get_rover_data():
+    """
+    This function returns rover path data
+    Arguments
+        None
+    Returns
+        output_list (list): all of the rover path data
+    """
+    output_list = ['ROVER DATA']
+    for item in rd_rover.keys():
+        output_list.append(json.loads(rd_rover.get(item)))
+    return output_list
+@app.route('/helicopter')
+def get_heli_data():
+    """
+     This function returns helicopter path data
+    Arguments
+        None
+    Returns
+        output_list (list): all of the helicopter path data
+    """
+    output_list = ['HELICOPTER DATA']
+    for item in rd_heli.keys():
+        output_list.append(json.loads(rd_heli.get(item)))
+    return output_list
+    
+
 @app.route('/rover/sols', methods=['GET'])
 def get_rover_sols():
     """
@@ -145,7 +173,8 @@ def get_deployed() -> list:
     This function returns all the sols during which both the rover and the helicopter were deployed.
     Arguments
         None
-    Returns sols_both_deployed (list): list of sols both rover and helicopter are deployed.
+    Returns 
+        sols_both_deployed (list): list of sols where both rover and helicopter are deployed.
     """
     both = []
     keys = rd_heli.keys()
@@ -269,19 +298,24 @@ def create_map():
         
         heli_sols = []
         rover_sols = []
-        sol_bounds = {'lower':request.args.get('lower',0),'upper':request.args.get('upper',0)}
+        lower = request.args.get('lower',0)
+        upper = request.args.get('upper',1000)
 
-        if sol_bounds['lower']:
+        if lower:
             try:
-                sol_bounds['lower'] = int(sol_bounds['lower'])
+                lower = int(lower)
             except ValueError:
                 return "Invalid lower bound parameter; must be an integer.\n"
-        if sol_bounds['upper']:
+        if upper:
             try:
-                sol_bounds['upper'] = int(sol_bounds['upper'])
+                upper = int(upper)
             except ValueError:
                 return "Invalid upper bound parameter; must be an integer.\n"
 
+        lower = int(request.argsget('lower',0))
+        upper = int(request.args.get('upper',1000))
+            
+        sol_bounds = {'lower':lower,'upper':upper}
         
         #converts from rd to sorted list
         for sol in rd_heli.keys():
@@ -294,7 +328,7 @@ def create_map():
         counter = 0;
         for sol in heli_sols:
             sol_dict = json.loads(rd_heli.get(sol))
-            if sol_dict["properties"]["Sol"] > int(sol_bounds['lower']) and sol_dict["properties"]["Sol"] < int(sol_bounds['upper']):
+            if sol_dict["properties"]["Sol"] > sol_bounds['lower'] and sol_dict["properties"]["Sol"] < sol_bounds['upper']:
                 for point in sol_dict['geometry']['coordinates']:
                     heli_x_pos.append(point[0])
                     heli_y_pos.append(point[1])
@@ -305,7 +339,7 @@ def create_map():
                         counter = 0;
         for sol in rover_sols:
             sol_dict = json.loads(rd_rover.get(sol))
-            if sol_dict["properties"]["sol"] > int(sol_bounds['lower']) and sol_dict["properties"]["sol"] < int(sol_bounds['upper']):
+            if sol_dict["properties"]["sol"] > sol_bounds['lower'] and sol_dict["properties"]["sol"] < sol_bounds['upper']:
                 if sol_dict['geometry']['type'] == 'MultiLineString':
                     counter2 = 0
                     for lists_of_coords in sol_dict['geometry']['coordinates']:
