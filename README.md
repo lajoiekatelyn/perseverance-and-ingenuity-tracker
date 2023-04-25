@@ -304,4 +304,31 @@ $ curl localhost:5000/helicopter/sols/sol:0714
   "type": "Feature"
 }
 ```
-
+### both_deployed
+```
+$ curl localhost:5000/both_deployed
+[
+  "sol:0398",
+  "sol:0362",
+  "sol:0717",
+  "sol:0107",
+  "sol:0418",
+  "sol:0714",
+  "sol:0681",
+  "sol:0384",
+  "sol:0708",
+  "sol:0414",
+  "sol:0388",
+  "sol:0091"
+]
+```
+### /rover/sols/<string:sol>/helicopter
+```
+$ curl localhost:5000/rover/sols/sol:0091/helicopter
+{
+  "shortest_dist": 85.31574053466534
+}
+```
+### /map [POST]
+### /map [GET]
+### /map [DELETE]
