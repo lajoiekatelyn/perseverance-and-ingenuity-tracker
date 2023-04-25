@@ -17,7 +17,7 @@ def get_redis_client(db_num:int, decode:bool):
     Returns
         redis_database (redis.client.Redis): Redis client
     """
-    return redis.Redis(host='127.0.0.1', port=6379, db=db_num, decode_responses=decode)
+    return redis.Redis(host='redis-db', port=6379, db=db_num, decode_responses=decode)
 
 rd_rover = get_redis_client(0, True)
 rd_heli = get_redis_client(1, True)
@@ -73,7 +73,8 @@ def get_route():
             rd_heli.set(key, item)
         return f'Data loaded into db.\n'
     elif request.method == 'DELETE':
-        rd.flushdb()
+        rd_rover.flushdb()
+        rd_heli.flushdb()
         return f'Data deleted.\n'
     else:
         return 'The method you requested does not apply.\n', 400
