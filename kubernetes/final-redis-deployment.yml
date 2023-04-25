@@ -1,0 +1,27 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: final-redis-deployment
+  labels:
+    app: final-redis-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: final-redis-app
+  template:
+    metadata:
+      labels:
+        app: final-redis-app
+    spec:
+      containers:
+        - name: final-redis
+          image: redis:7
+          volumeMounts:
+          - name: final-pvc
+            mountPath: "/data"
+      volumes:
+      - name: final-pvc
+        persistentVolumeClaim:
+          claimName: final-pvc
