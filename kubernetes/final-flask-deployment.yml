@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: final-flask-deployment
+  labels:
+    app: final-flask-app
+spec:
+  replicas: 2 
+  selector:
+    matchLabels:
+      app: final-flask-app
+  template:
+    metadata:
+      labels:
+        app: final-flask-app
+    spec:
+      containers:
+        - name: final-flask
+          imagePullPolicy: Always
+          image: lajoiekatelyn/perseverance-and-ingenuity-tracker:local
+          env:
+          - name: FLASK_APP
+            value: "app.py"
+          - name: REDIS_IP
+            value: final-redis-service
+          ports:
+          - name: http
+            containerPort: 5000
