@@ -314,7 +314,10 @@ def create_map():
 
         lower = int(request.argsget('lower',0))
         upper = int(request.args.get('upper',1000))
-            
+
+        if lower >= upper:
+            return "[ERROR] Upper bound must be larger than lower bound"
+        
         sol_bounds = {'lower':lower,'upper':upper}
         
         #converts from rd to sorted list
