@@ -17,7 +17,7 @@ services:
             - redis-db
         environment:
             - REDIS_IP=final-redis-service
-        image: lajoiekatelyn/perseverance_and_ingenuity_tracker:local
+        image: lajoiekatelyn/perseverance_and_ingenuity_tracker:kube
         ports:
             - 5000:5000
 
