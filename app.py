@@ -3,8 +3,7 @@ from flask import Flask, request, send_file
 import redis
 import math
 import matplotlib.pyplot as plt
-import os
-
+import requests
 app = Flask(__name__)
 
 rover_data = {}
@@ -23,7 +22,7 @@ def get_redis_client(db_num:int, decode:bool):
 
 rd_rover = get_redis_client(0, True)
 rd_heli = get_redis_client(1, True)
-rd_img = get_redis_client(2, False)
+rd_img = get_redis_client(2, True)
 
 def calc_gcd(latitude_1: float, longitude_1: float, latitude_2: float, longitude_2: float, radius:float) -> float:
     """
@@ -270,7 +269,18 @@ def create_map():
         
         heli_sols = []
         rover_sols = []
-        sol_bounds = {'lower_bound':200,'upper_bound':500}
+        sol_bounds = {'lower':request.args.get('lower',0),'upper':request.args.get('upper',0)}
+
+        if sol_bounds['lower']:
+            try:
+                sol_bounds['lower'] = int(sol_bounds['lower'])
+            except ValueError:
+                return "Invalid lower bound parameter; must be an integer.\n"
+        if sol_bounds['upper']:
+            try:
+                sol_bounds['upper'] = int(sol_bounds['upper'])
+            except ValueError:
+                return "Invalid upper bound parameter; must be an integer.\n"
 
         
         #converts from rd to sorted list
@@ -284,48 +294,41 @@ def create_map():
         counter = 0;
         for sol in heli_sols:
             sol_dict = json.loads(rd_heli.get(sol))
-            if sol_dict["properties"]["Sol"] < sol_bounds['lower_bound']:
-                continue;
-            elif sol_dict["properties"]["Sol"] > sol_bounds['upper_bound']:
-                continue;
-            for point in sol_dict['geometry']['coordinates']:
-                heli_x_pos.append(point[0])
-                heli_y_pos.append(point[1])
-                counter +=1
-                if counter == len(sol_dict['geometry']['coordinates']):
-                    heli_x_pos_end.append(point[0])
-                    heli_y_pos_end.append(point[1])
-                    counter = 0;
-        for sol in rover_sols:
-            #there seems to be an some corrdinates that are given as list
-            sol_dict = json.loads(rd_rover.get(sol))
-            if sol_dict["properties"]["sol"] < sol_bounds['lower_bound']:
-                continue;
-            elif sol_dict["properties"]["sol"] > sol_bounds['upper_bound']:
-                continue;
-            if sol_dict['geometry']['type'] == 'MultiLineString':
-                counter2 = 0
-                for lists_of_coords in sol_dict['geometry']['coordinates']:
+            if sol_dict["properties"]["Sol"] > int(sol_bounds['lower']) and sol_dict["properties"]["Sol"] < int(sol_bounds['upper']):
+                for point in sol_dict['geometry']['coordinates']:
+                    heli_x_pos.append(point[0])
+                    heli_y_pos.append(point[1])
                     counter +=1
-                    for point in lists_of_coords:
+                    if counter == len(sol_dict['geometry']['coordinates']):
+                        heli_x_pos_end.append(point[0])
+                        heli_y_pos_end.append(point[1])
+                        counter = 0;
+        for sol in rover_sols:
+            sol_dict = json.loads(rd_rover.get(sol))
+            if sol_dict["properties"]["sol"] > int(sol_bounds['lower']) and sol_dict["properties"]["sol"] < int(sol_bounds['upper']):
+                if sol_dict['geometry']['type'] == 'MultiLineString':
+                    counter2 = 0
+                    for lists_of_coords in sol_dict['geometry']['coordinates']:
+                        counter +=1
+                        for point in lists_of_coords:
+                            rover_x_pos.append(point[0])
+                            rover_y_pos.append(point[1])
+                            counter2+=1
+                            if counter == len(sol_dict['geometry']['coordinates']) and counter2 == len(lists_of_coords):
+                                rover_x_pos_end.append(point[0])
+                                rover_y_pos_end.append(point[1])
+                                counter=0
+                                counter2=0
+                        
+                elif sol_dict['geometry']['type'] == 'LineString':
+                    for point in sol_dict['geometry']['coordinates']:
                         rover_x_pos.append(point[0])
                         rover_y_pos.append(point[1])
-                        counter2+=1
-                        if counter == len(sol_dict['geometry']['coordinates']) and counter2 == len(lists_of_coords):
+                        counter+=1
+                        if counter == len(sol_dict['geometry']['coordinates']):
                             rover_x_pos_end.append(point[0])
                             rover_y_pos_end.append(point[1])
                             counter=0
-                            counter2=0
-                        
-            elif sol_dict['geometry']['type'] == 'LineString':
-                for point in sol_dict['geometry']['coordinates']:
-                    rover_x_pos.append(point[0])
-                    rover_y_pos.append(point[1])
-                    counter+=1
-                    if counter == len(sol_dict['geometry']['coordinates']):
-                        rover_x_pos_end.append(point[0])
-                        rover_y_pos_end.append(point[1])
-                        counter=0
         
         plt.plot(heli_x_pos,heli_y_pos,label='Ingenuity')
         plt.plot(rover_x_pos,rover_y_pos,label='Perseverance')
@@ -336,24 +339,26 @@ def create_map():
         plt.xlabel("Latitude ($^{\circ}$)")
         plt.ylabel("Longitude ($^{\circ}$)")
         plt.legend()
-        plt.savefig('./map.png')
-
-        filebytes = open('./map.png', 'rb').read()
-        rd_img.set('map', filebytes)
-        return "Map has been written to image database.\n"
+        plt.savefig('map.png')
+        headers = {'Authorization': 'Bearer 5eeae49394cd929e299785c8805bd168fc675280'}
+        data = {'image': open('./map.png', 'rb')}
+        response = requests.post(url="https://api.imgur.com/3/upload", headers=headers, files=data)
+        rd_img.set('map', response.content)
+        return "Map has been uploaded to redis and imgur \n"
     #returns to user
     elif request.method == 'GET':
         if rd_img.exists('map'):
-            path = './map.png'
-            with open(path, 'wb') as f:
-                f.write(rd_img.get('map'))
-                return send_file(path, mimetype='map/png', as_attachment=True)
+            return json.loads(rd_img.get('map'))
         else:
-            return 'There are no images in the database.\n', 400
-        return 'Plot can be found on imgur.\n'
+            return "Map has not been loaded in"
     elif request.method == 'DELETE':
+        data = json.loads(rd_img.get('map'))
+        delete_hash = data['data']["deletehash"]
+        url = f'https://api.imgur.com/3/image/{delete_hash}'
+        headers = {'Authorization': 'Client-ID cf0aaf4466732fb'}
+        response = requests.delete(url, headers=headers)
         rd_img.flushdb()
-        return 'Plot has been deleted from database.\n'
+        return 'Plot has been deleted from redis and imgur.\n'
     else:
         return 'The method you requested is not an option.\n'
 
