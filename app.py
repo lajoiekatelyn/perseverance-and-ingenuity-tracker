@@ -312,7 +312,7 @@ def create_map():
             except ValueError:
                 return "Invalid upper bound parameter; must be an integer.\n"
 
-        lower = int(request.argsget('lower',0))
+        lower = int(request.args.get('lower',0))
         upper = int(request.args.get('upper',1000))
 
         if lower >= upper:
