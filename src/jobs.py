@@ -53,7 +53,7 @@ def add_job(upper, lower, status="submitted"):
     """Add a job to the redis queue."""
     jid = _generate_jid()
     job_dict = _instantiate_job(jid, status, upper, lower)
-    _save_job(_generate_job_key(jid), job_dict)
+    save_job(_generate_job_key(jid), job_dict)
     queue_job(jid)
     return job_dict
 
@@ -62,6 +62,6 @@ def update_job_status(jid, status):
     job = rd_jobs.hgetall('job.{}'.format(jid))
     if job:
         job['status'] = status
-        _save_job(_generate_job_key(jid), job)
+        save_job(_generate_job_key(jid), job)
     else:
         raise Exception()
