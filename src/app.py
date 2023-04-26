@@ -329,9 +329,9 @@ def jobs_api():
       try:
           job = request.get_json(force=True)
       except Exception as e:
-          return True, json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
-      # return json.dumps(jobs.add_job(job['lower'], job['upper']))
-      return "Job submitted."
+          return json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
+      return json.dumps(jobs.add_job(job['lower'], job['upper']))
+      # return "Job submitted."
 
 
 if __name__=='__main__':
