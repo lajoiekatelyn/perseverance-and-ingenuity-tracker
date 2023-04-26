@@ -57,9 +57,14 @@ def add_job(upper, lower, status="submitted"):
     queue_job(jid)
     return job_dict
 
+def check_job_status(jid):
+    """Check the status of a job with job id `jid`."""
+    job = rd_jobs.hget(_generate_job_key(jid), 'status')
+    return job
+
 def update_job_status(jid, status):
     """Update the status of job with job id `jid` to status `status`."""
-    job = rd_jobs.hgetall('job.{}'.format(jid))
+    job = rd_jobs.hgetall(_generate_job_key(jid))
     if job:
         job['status'] = status
         save_job(_generate_job_key(jid), job)
