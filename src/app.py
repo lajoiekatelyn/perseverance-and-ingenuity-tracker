@@ -320,19 +320,32 @@ b \n       [/help]                                 Return string with informatio
      return message
 
 
-@app.route('/jobs', methods=['POST'])
+@app.route('/jobs', methods=['GET', 'POST', 'DELETE'])
 def jobs_api():
-      """
-      API route for creating a new job to do some analysis. This route accepts a JSON payload
-      describing the job to be created.
-      """
-      try:
-          job = request.get_json(force=True)
-      except Exception as e:
-          return json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
-      return json.dumps(jobs.add_job(job['lower'], job['upper']))
-      # return "Job submitted."
-
+    """
+    API route for creating a new job to do some analysis. This route accepts a JSON payload
+    describing the job to be created.
+    """
+    if request.method == 'GET':
+        try:
+            job = request.get_json(force=True)
+        except Exception as e:
+            return json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
+        if rd_img.get(job['id']):
+            return json.dumps(rd_img.get(job['id']))
+        else:
+            return 'Image not in database. Please query an image request, or check back later.', 400
+    elif request.method == 'POST':
+        try:
+            job = request.get_json(force=True)
+        except Exception as e:
+            return json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
+        job = jobs.add_job(job['lower'], job['upper'])
+        return 'Job submitted. Please wait a moment to check jid: {} for completion.\n'.format(job['id'])
+    elif request.method == 'DELETE':
+        rd_img.flushdb()
+    else:
+        return 'Method requested not applicable. Please try again.\n', 400
 
 if __name__=='__main__':
     app.run(debug=True, host='0.0.0.0')

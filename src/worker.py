@@ -39,7 +39,7 @@ def execute_job(jid):
     Return 
         None
     """
-    jobs.update_job_status(jid, 'in progress')
+    update_job_status(jid, 'in progress')
 
     job_dict = rd_jobs.hgetall(jid)
     
@@ -144,8 +144,7 @@ def execute_job(jid):
     #returns to user
 
 
-    jobs.update_job_status(jid, 'complete')
+    update_job_status(jid, 'complete')
 
 if __name__ == '__main__':
-    jid = q.get()
-    execute_job(jid)
+    execute_job()
