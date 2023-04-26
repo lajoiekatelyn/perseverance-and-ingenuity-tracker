@@ -20,7 +20,7 @@ def get_redis_client(db_num:int, decode:bool):
 rd_rover = get_redis_client(0, True)
 rd_heli = get_redis_client(1, True)
 rd_img = get_redis_client(2, True)
-
+rd_jobs = get_redis_client(3, True)
 
 #how are we getting redis data
 #how are we getting jid
@@ -31,9 +31,16 @@ def execute_job(jid):
     """
     Retrieve a job id from the task queue and execute the job.
     Monitors the job to completion and updates the database accordingly.
+
+    Arguments 
+        jid (string): job identifier
+    Return 
+        None
     """
     jobs.update_job_status(jid, 'in progress')
 
+    job_dict = rd_jobs.hgetall(jid)
+    
     if len(rd_heli.keys()) == 0:
         return 'There is no data in the database; image cannot be created.\n', 400
         
@@ -49,8 +56,8 @@ def execute_job(jid):
         
         heli_sols = []
         rover_sols = []
-        lower = request.args.get('lower',0)
-        upper = request.args.get('upper',1000)
+        lower = job_dict['lower']
+        upper = job_dict['upper']
 
         if lower:
             try:
@@ -63,8 +70,8 @@ def execute_job(jid):
             except ValueError:
                 return "Invalid upper bound parameter; must be an integer.\n"
 
-        lower = int(request.args.get('lower',0))
-        upper = int(request.args.get('upper',1000))
+        lower = int(lower)
+        upper = int(upper)
 
         if lower >= upper:
             return "[ERROR] Upper bound must be larger than lower bound"
@@ -131,8 +138,7 @@ def execute_job(jid):
         headers = {'Authorization': 'Bearer 5eeae49394cd929e299785c8805bd168fc675280'}
         data = {'image': open('./map.png', 'rb')}
         response = requests.post(url="https://api.imgur.com/3/upload", headers=headers, files=data)
-        rd_img.set('map', response.content)
-        return "Map has been uploaded to redis and imgur \n"
+        rd_img.set(jid, response.content)
     #returns to user
 
 
