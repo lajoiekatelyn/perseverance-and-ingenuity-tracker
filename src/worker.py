@@ -137,3 +137,7 @@ def execute_job(jid):
 
 
     jobs.update_job_status(jid, 'complete')
+
+if __name__ == '__main__':
+    jid = q.get()
+    execute_job(jid)
