@@ -1,15 +1,19 @@
 import uuid
+import os
+import jobs
 from hotqueue import HotQueue
-from redis import Redis
+#from redis import Redis
+import redis
 
-redis_ip = os.environ.get('REDIS_IP')
-if not redis_ip:
-    raise Exception()
 
-q = HotQueue("queue", host=redis_ip, port=6379, db=4)
-rd_jobs = redis.Redis(host=redis_ip, port=6379, db=3)
+#redis_ip = os.environ.get('REDIS_IP')
+#if not redis_ip:
+#    raise Exception()
 
-def generate_jid():
+q = HotQueue("queue", host="127.0.0.1", port=6379, db=4)
+rd_jobs = redis.Redis(host="127.0.0.1", port=6379, db=3)
+
+def _generate_jid():
     """
     Generate a pseudo-random identifier for a job.
     """
