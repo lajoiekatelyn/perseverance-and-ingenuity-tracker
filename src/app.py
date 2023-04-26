@@ -278,23 +278,22 @@ def get_heli_flight(flight:str):
 
     return f"The data for flight:{flight} is not within the dataset.\n",400
 
-@app.route('/map', methods=['GET', 'POST', 'DELETE'])
+@app.route('/map', methods=['GET', 'DELETE'])
 def create_map():
     """
     This function either gets, post, or deletes map of rover and helicopter's paths
     Arguments
-        lower_bound (str): sol at wich the plot begins 
-        upper_bound (str): sol at which the plot ends
+        jid (str): job identifier
     Returns
     """
-    
+    jid = request.args.get('jid')
     if request.method == 'GET':
-        if rd_img.exists('map'):
-            return json.loads(rd_img.get('map'))
+        if rd_img.exists(jid):
+            return json.loads(rd_img.get(jid))
         else:
-            return "Map has not been loaded in"
+            return "Map for specified job does not exist"
     elif request.method == 'DELETE':
-        data = json.loads(rd_img.get('map'))
+        data = json.loads(rd_img.get(jid))
         delete_hash = data['data']["deletehash"]
         url = f'https://api.imgur.com/3/image/{delete_hash}'
         headers = {'Authorization': 'Client-ID cf0aaf4466732fb'}
