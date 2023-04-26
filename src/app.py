@@ -319,16 +319,16 @@ b \n       [/help]                                 Return string with informatio
 
 
 @app.route('/jobs', methods=['POST'])
-  def jobs_api():
-      """
-      API route for creating a new job to do some analysis. This route accepts a JSON payload
-      describing the job to be created.
-      """
-      try:
-          job = request.get_json(force=True)
-      except Exception as e:
-          return True, json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
-      return json.dumps(jobs.add_job(job['lower'], job['upper']))
+def jobs_api():
+    """
+    API route for creating a new job to do some analysis. This route accepts a JSON payload
+    describing the job to be created.
+    """
+    try:
+        job = request.get_json(force=True)
+    except Exception as e:
+        return True, json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
+    return json.dumps(jobs.add_job(job['lower'], job['upper']))
 
 
 if __name__=='__main__':
