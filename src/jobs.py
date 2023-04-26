@@ -1,8 +1,6 @@
 import uuid
 import os
-import jobs
 from hotqueue import HotQueue
-#from redis import Redis
 import redis
 
 
@@ -19,7 +17,14 @@ def _generate_jid():
     """
     return str(uuid.uuid4())
 
-def instantiate_job(jid, status, upper, lower):
+def _generate_job_key(jid):
+    """
+    Generate the redis key from the job id to be used when storing, retrieving or updating
+    a job in the database.
+    """
+    return 'job.{}'.format(jid)
+
+def _instantiate_job(jid, status, upper, lower):
     """
     Create the job object description as a python dictionary. Requires the job id, status,
     start and end parameters.
@@ -47,14 +52,14 @@ def queue_job(jid):
 def add_job(upper, lower, status="submitted"):
     """Add a job to the redis queue."""
     jid = _generate_jid()
-    job_dict = instantiate_job(jid, status, upper, lower)
-    save_job(jid, job_dict)
+    job_dict = _instantiate_job(jid, status, upper, lower)
+    _save_job(_generate_job_key(jid), job_dict)
     queue_job(jid)
     return job_dict
 
 def update_job_status(jid, status):
     """Update the status of job with job id `jid` to status `status`."""
-    job = get_job_by_id(jid)
+    job = rd_jobs.hgetall('job.{}'.format(jid))
     if job:
         job['status'] = status
         _save_job(_generate_job_key(jid), job)
