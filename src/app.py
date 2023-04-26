@@ -23,7 +23,7 @@ def get_redis_client(db_num:int, decode:bool):
     redis_ip = os.environ.get('REDIS_IP')
     if not redis_ip:
         raise Exception()
-
+    
     return redis.Redis(host=redis_ip, port=6379, db=db_num, decode_responses=decode)
 
 rd_rover = get_redis_client(0, True)
@@ -305,5 +305,19 @@ def create_map():
         return 'The method you requested is not an option.\n'
 
 
+@app.route('/help', methods=['GET'])
+def help():
+     message = "usage: curl localhost:5000[Options]\n\n  *** Note that for routes with POST or DELETE in their descriptions -X POST or -X DELETE will need \
+to be added to the curl command \n    Options: \n       [/data]                                 GET POST OR DELETE entire data set \n       [/rover]       \
+                         Return list of path data set \n       [/helicopter]                           Return list of all path data \n       [/rover/sols] \
+                          Return list of sols in rover data\n       [/rover/sols/<string:sol>]              Return data for specific sol\n       [/both_dep\
+loyed]                        Return sols where both are deployed \n       [/helicopter/sols]                      Returns list of sols in data \n       [/\
+helicopter/sols/<string:sol>]         Return data for a given sol \n       [/rover/sols/<string:sol>/helicopter]   Returns shortest distance for a given so\
+l \n       [/helicopter/flights]                   Return list of flights in data \n       [/helicopter/flights/<string:flight>]   Return data for a given \
+flight \n       [/map]                                  GET or DELETE plot with path data \n       [/jobs]                                 Create a plot/jo\
+b \n       [/help]                                 Return string with information on routes"
+     return message
+
+    
 if __name__=='__main__':
     app.run(debug=True, host='0.0.0.0')
