@@ -14,4 +14,3 @@ COPY src/helicopter_flight_path.json /helicopter_flight_path.json
 COPY src/rover_drive_path.json /rover_drive_path.json
 
 CMD ["python", "app.py"]
-CMD ["python", "worker.py"]
