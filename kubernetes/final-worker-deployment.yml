@@ -2,18 +2,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: final-flask-deployment
+  name: final-worker-deployment
   labels:
-    app: final-flask-app
+    app: final-worker-app
 spec:
   replicas: 2 
   selector:
     matchLabels:
-      app: final-flask-app
+      app: final-worker-app
   template:
     metadata:
       labels:
-        app: final-flask-app
+        app: final-worker-app
     spec:
       containers:
         - name: final-flask
@@ -26,4 +26,5 @@ spec:
             value: final-redis-service
           ports:
           - name: http
-            containerPort: 5000 
+            containerPort: 5000
+          command: ['python3', '-u', 'worker.py']
