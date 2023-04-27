@@ -125,7 +125,7 @@ def execute_job(jid):
                         rover_x_pos_end.append(point[0])
                         rover_y_pos_end.append(point[1])
                         counter = 0
-
+    plt.figure()
     plt.plot(heli_x_pos, heli_y_pos, label='Ingenuity')
     plt.plot(rover_x_pos, rover_y_pos, label='Perseverance')
     plt.scatter(heli_x_pos_end, heli_y_pos_end)
