@@ -1,6 +1,8 @@
 from jobs import q, update_job_status
+import requests
 import redis
-
+import json
+import matplotlib.pyplot as plt
 
 def get_redis_client(db_num: int, decode: bool):
     """
@@ -32,9 +34,9 @@ def execute_job(jid):
     Return 
         None
     """
-    jobs.update_job_status(jid, 'in progress')
+    update_job_status(jid, 'in progress')
 
-    job_dict = rd_jobs.hgetall(jid)
+    job_dict = rd_jobs.hgetall('job.{}'.format(jid))
 
     if len(rd_heli.keys()) == 0:
         return 'There is no data in the database; image cannot be created.\n', 400
@@ -69,6 +71,7 @@ def execute_job(jid):
     upper = int(upper)
 
     if lower >= upper:
+        print('lower ', lower, ' upper ', upper)
         return "[ERROR] Upper bound must be larger than lower bound"
 
     sol_bounds = {'lower': lower, 'upper': upper}
@@ -138,9 +141,8 @@ def execute_job(jid):
     rd_img.set(jid, response.content)
     # returns to user
 
-    jobs.update_job_status(jid, 'complete')
+    update_job_status(jid, 'complete')
 
 
 if __name__ == '__main__':
-    jid = q.get()
-    execute_job(jid)
+    execute_job()

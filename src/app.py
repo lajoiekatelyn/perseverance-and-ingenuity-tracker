@@ -340,7 +340,7 @@ def jobs_api():
             job = request.get_json(force=True)
         except Exception as e:
             return json.dumps({'status': "Error", 'message': 'Invalid JSON: {}.'.format(e)})
-        job = jobs.add_job(job['lower'], job['upper'])
+        job = jobs.add_job(job['upper'], job['lower'])
         return 'Job submitted. Please wait a moment to check jid: {} for completion.\n'.format(job['id'])
     elif request.method == 'DELETE':
         rd_img.flushdb()
