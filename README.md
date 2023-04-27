@@ -339,3 +339,37 @@ $ curl localhost:5000/rover/sols/sol:0091/helicopter
 ### /map [POST]
 ### /map [GET]
 ### /map [DELETE]
+
+## Running App Without Docker and Kubernetes
+### App.py Changes 
+Within app.py edit the get_redis_client(db_num:int, decode:bool) funtion to so that we are that the host is '127.0.0.1'. The new get_redis_client should look like the example below:
+```
+def get_redis_client(db_num:int, decode:bool):
+    #redis_ip = os.environ.get('REDIS_IP')
+    #if not redis_ip:
+    #    raise Exception()
+    return redis.Redis(host='127.0.0.1', port=6379, db=db_num, decode_responses=decode)
+```
+### Jobs.py Changes
+Within the jobs.py file we will also make modifications to the redis host. Edit the lines at the top of the jobs.py file to look like the example below:
+```
+#redis_ip = os.environ.get('REDIS_IP')
+#if not redis_ip:
+#    raise Exception()
+
+q = HotQueue("queue", host='127.0.0.1', port=6379, db=4)
+rd_jobs = redis.Redis(host='127.0.0.1', port=6379, db=3)
+```
+### Worker.py Changes
+Lastly, modify the redis host inside of the worker file get_redis_client() function. Your code should look like the example below:
+```
+def get_redis_client(db_num: int, decode: bool):
+
+    #redis_ip = os.environ.get('REDIS_IP')
+    #if not redis_ip:
+    #    raise Exception()
+
+    return redis.Redis(host='127.0.0.1', port=6379, db=db_num, decode_responses=decode)
+
+```
+
