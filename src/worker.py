@@ -3,6 +3,7 @@ import requests
 import redis
 import json
 import matplotlib.pyplot as plt
+import os
 
 def get_redis_client(db_num: int, decode: bool):
     """
