@@ -76,6 +76,7 @@ Each yaml file in this repo, save for `docker-compose.yml`, is a file that needs
 $ kubectl apply -f final-redis-deployment.yml
 $ kubectl apply -f final-pvc.yml
 $ kubectl apply -f final-flask-deployment.yml
+$ kubectl apply -f final-worker-deployment.yml
 $ kubectl apply -f final-redis-service.yml
 $ kubectl apply -f final-flask-service.yml
 $ kubectl apply -f final-python-debug.yml
@@ -87,10 +88,12 @@ NOTE: if users wish to user their own Flask API in the kubernetes cluster, they 
 To use the cluster, first run the following comand
 ```
 $ kubectl get pods
-final-flask-deployment-57648c5759-t9x5t   1/1     Running   0               102m
-final-flask-deployment-57648c5759-vjzl7   1/1     Running   0               102m
-final-redis-deployment-654c66bcb6-smzjm   1/1     Running   0               104m
-py-debug-deployment-f484b4b99-r9vff              1/1     Running   0               8h
+NAME                                       READY   STATUS    RESTARTS   AGE
+final-flask-deployment-755fbb484b-gpsnc    1/1     Running   0          44m
+final-flask-deployment-755fbb484b-s54ml    1/1     Running   0          44m
+final-redis-deployment-57c6d74c5b-v6hpc    1/1     Running   0          8h
+final-worker-deployment-6988b44b44-tf4vv   1/1     Running   0          44m
+py-debug-deployment-f484b4b99-dmgnz        1/1     Running   0          35h
 ```
 
 Note the python debug deployment and use it to access the cluster:
