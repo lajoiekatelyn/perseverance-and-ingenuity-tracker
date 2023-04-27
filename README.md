@@ -121,13 +121,13 @@ Here is a table of the routes:
 | `/heli/` | GET | Return json-formatted list of the heli path data |
 | `/helicopter/flights` | GET | Return json-formatted list of the heli flights|
 | `/helicopter/flights/<string:flight>` | GET | Return dictionary with information related to a given flight|
-| `/heli/sols` | GET | Return json-formatted list of all the sols where the heli was operational |
+| `/helicopter/sols` | GET | Return json-formatted list of all the sols where the heli was operational |
 | `/heli/sols/<string:sol>` | GET | Return dictionary with all the information in the heli dataset associated with that sol |
 | `/rover/sols/<string:sol>/helicopter` | GET | Return dictionary containing the shortest distance between the robots |
 | `/both_deployed` | GET | Return list where both Perseverance and Ingenuity were deployed |
-| `/map?lower= &upper= ` | POST | Create map with path data based on lower and iupper bounds |
-| | GET | Return a dictionary containing link to the image |
-| | DELETE | Delete map data in redis |
+| `/map/<string:jid>` | GET | Return a dictionary containing link to the image. |
+|  | DELETE | Delete an image from the image database |
+| `/jobs` | POST | Request an image be curated according to upper and lower sol bounds. |
 
 ### /data [POST]
 ```
