@@ -9,6 +9,7 @@ RUN pip install hotqueue==0.2.8
 
 COPY src/app.py /app.py
 COPY src/worker.py /worker.py
+COPY src/jobs.py /jobs.py
 COPY src/helicopter_flight_path.json /helicopter_flight_path.json
 COPY src/rover_drive_path.json /rover_drive_path.json
 
