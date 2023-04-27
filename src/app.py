@@ -24,7 +24,7 @@ def get_redis_client(db_num:int, decode:bool):
 
     redis_ip = os.environ.get('REDIS_IP')
     if not redis_ip:
-    raise Exception()
+        raise Exception()
     
     return redis.Redis(host=redis_ip, port=6379, db=db_num, decode_responses=decode)
 
