@@ -4,12 +4,12 @@ from hotqueue import HotQueue
 import redis
 
 
-#redis_ip = os.environ.get('REDIS_IP')
-#if not redis_ip:
-#    raise Exception()
+redis_ip = os.environ.get('REDIS_IP')
+if not redis_ip:
+    raise Exception()
 
-q = HotQueue("queue", host="127.0.0.1", port=6379, db=4)
-rd_jobs = redis.Redis(host="127.0.0.1", port=6379, db=3)
+q = HotQueue("queue", host=redis_ip, port=6379, db=4)
+rd_jobs = redis.Redis(host=redis_ip, port=6379, db=3)
 
 def _generate_jid():
     """
