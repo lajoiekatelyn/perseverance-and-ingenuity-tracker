@@ -224,7 +224,7 @@ def get_heli_sol(sol:str):
 @app.route('/rover/sols/<string:sol>/helicopter', methods=['GET'])
 def shortest_dist_between_agents(sol:str):
     """
-    This function returns list of all flights.
+    This function returns the shortest distance between two robots for a given sol
     Arguments
         sol (str): sol of interest
     Returns
@@ -308,15 +308,14 @@ def create_map(jid:str):
 
 @app.route('/help', methods=['GET'])
 def help():
-     message = "usage: curl localhost:5000[Options]\n\n  *** Note that for routes with POST or DELETE in their descriptions -X POST or -X DELETE will need \
-to be added to the curl command \n    Options: \n       [/data]                                 GET POST OR DELETE entire data set \n       [/rover]       \
+     message = "usage: curl final-flask-service:5000\n\n  *** Note that for routes with POST or DELETE in their descriptions require -X POST or -X DELETE will need \
+to be added to the curl command \n\n    Options: \n       [/data]                                 GET POST OR DELETE entire data set \n       [/rover]       \
                          Return list of path data set \n       [/helicopter]                           Return list of all path data \n       [/rover/sols] \
                           Return list of sols in rover data\n       [/rover/sols/<string:sol>]              Return data for specific sol\n       [/both_dep\
 loyed]                        Return sols where both are deployed \n       [/helicopter/sols]                      Returns list of sols in data \n       [/\
 helicopter/sols/<string:sol>]         Return data for a given sol \n       [/rover/sols/<string:sol>/helicopter]   Returns shortest distance for a given so\
 l \n       [/helicopter/flights]                   Return list of flights in data \n       [/helicopter/flights/<string:flight>]   Return data for a given \
-flight \n       [/map]                                  GET or DELETE plot with path data \n       [/jobs]                                 Create a plot/jo\
-b \n       [/help]                                 Return string with information on routes"
+flight \n       [/map/<string:jid>][GET][DELETE]                     GET or DELETE plot with path data \n       [/jobs][POST]                           Create a /job \n       [/help]                                 Return string with information on routes"
      return message
 
 
