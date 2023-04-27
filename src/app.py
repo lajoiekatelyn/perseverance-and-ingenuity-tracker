@@ -280,15 +280,15 @@ def get_heli_flight(flight:str):
 
     return f"The data for flight:{flight} is not within the dataset.\n",400
 
-@app.route('/map', methods=['GET', 'DELETE'])
-def create_map():
+@app.route('/map/<string:jid>', methods=['GET', 'DELETE'])
+def create_map(jid:str):
     """
     This function either gets, post, or deletes map of rover and helicopter's paths
     Arguments
         jid (str): job identifier
     Returns
     """
-    jid = request.args.get('jid')
+    #jid = 'job.{}'.format(jid)
     if request.method == 'GET':
         if rd_img.exists(jid):
             return json.loads(rd_img.get(jid))
